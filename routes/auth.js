@@ -13,7 +13,6 @@ const generateToken = (user) => {
   );
 };
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   const db = req.app.locals.db;
   const { email, password, name } = req.body;
@@ -33,7 +32,7 @@ router.post('/register', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    
+
     const result = await db.query(
       'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, role, created_at',
       [email.toLowerCase(), passwordHash, name]
@@ -49,7 +48,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   const db = req.app.locals.db;
   const { email, password } = req.body;
@@ -85,7 +83,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/me
 router.get('/me', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -105,7 +102,6 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/auth/profile
 router.put('/profile', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { name, avatar_url } = req.body;

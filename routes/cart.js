@@ -3,7 +3,6 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/cart
 router.get('/', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -25,7 +24,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/cart - add item
 router.post('/', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { product_id, quantity = 1, size, color } = req.body;
@@ -35,7 +33,6 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 
   try {
-    // Check product exists and has stock
     const product = await db.query('SELECT * FROM products WHERE id = $1', [product_id]);
     if (product.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
@@ -45,7 +42,6 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Not enough stock' });
     }
 
-    // Upsert cart item
     const result = await db.query(
       `INSERT INTO cart_items (user_id, product_id, quantity, size, color)
        VALUES ($1, $2, $3, $4, $5)
@@ -62,7 +58,6 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/cart/:id - update quantity
 router.put('/:id', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { quantity } = req.body;
@@ -87,7 +82,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/cart/:id - remove item
 router.delete('/:id', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -103,7 +97,6 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/cart - clear cart
 router.delete('/', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 

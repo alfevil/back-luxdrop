@@ -3,7 +3,6 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/orders - user's orders
 router.get('/', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -13,7 +12,6 @@ router.get('/', authMiddleware, async (req, res) => {
       [req.user.id]
     );
 
-    // Get items for each order
     for (let order of orders.rows) {
       const items = await db.query(
         `SELECT oi.*, p.name, p.brand, p.images
@@ -31,7 +29,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/orders/:id
 router.get('/:id', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -59,7 +56,6 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/orders - create order from cart
 router.post('/', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { shipping_address, payment_method = 'card', notes } = req.body;
@@ -73,7 +69,6 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Get user's cart
     const cart = await client.query(
       `SELECT ci.*, p.name, p.brand, p.price, p.images, p.stock
        FROM cart_items ci
@@ -87,7 +82,6 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // Check stock availability
     for (const item of cart.rows) {
       if (item.stock < item.quantity) {
         await client.query('ROLLBACK');
@@ -95,17 +89,14 @@ router.post('/', authMiddleware, async (req, res) => {
       }
     }
 
-    // Calculate total
     const total = cart.rows.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Create order
     const order = await client.query(
       `INSERT INTO orders (user_id, total_amount, shipping_address, payment_method, notes)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [req.user.id, total, shipping_address, payment_method, notes]
     );
 
-    // Create order items & reduce stock
     for (const item of cart.rows) {
       await client.query(
         `INSERT INTO order_items (order_id, product_id, quantity, price, size, color, product_snapshot)
@@ -127,7 +118,6 @@ router.post('/', authMiddleware, async (req, res) => {
       );
     }
 
-    // Clear cart
     await client.query('DELETE FROM cart_items WHERE user_id = $1', [req.user.id]);
 
     await client.query('COMMIT');
@@ -142,7 +132,6 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/orders/:id/cancel
 router.put('/:id/cancel', authMiddleware, async (req, res) => {
   const db = req.app.locals.db;
 
@@ -171,7 +160,6 @@ router.put('/:id/cancel', authMiddleware, async (req, res) => {
   }
 });
 
-// Admin: update order status
 router.put('/:id/status', adminMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { status, tracking_number } = req.body;

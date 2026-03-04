@@ -3,7 +3,6 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /api/products - list with filters
 router.get('/', async (req, res) => {
   const db = req.app.locals.db;
   const { category, brand, min_price, max_price, search, sort, featured, limit = 20, offset = 0 } = req.query;
@@ -52,7 +51,6 @@ router.get('/', async (req, res) => {
       query += ` AND p.is_featured = true`;
     }
 
-    // Sorting
     switch (sort) {
       case 'price_asc': query += ' ORDER BY p.price ASC'; break;
       case 'price_desc': query += ' ORDER BY p.price DESC'; break;
@@ -70,14 +68,12 @@ router.get('/', async (req, res) => {
     params.push(offset);
 
     const result = await db.query(query, params);
-    
-    // Get total count
+
     let countQuery = 'SELECT COUNT(*) FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1';
     const countParams = params.slice(0, params.length - 2);
     if (countParams.length > 0) {
-      // rebuild conditions without limit/offset
     }
-    
+
     res.json({
       products: result.rows,
       count: result.rows.length
@@ -88,7 +84,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/products/categories
 router.get('/categories', async (req, res) => {
   const db = req.app.locals.db;
 
@@ -102,7 +97,6 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// GET /api/products/:id
 router.get('/:id', async (req, res) => {
   const db = req.app.locals.db;
 
@@ -125,7 +119,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/products - admin only
 router.post('/', adminMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { name, brand, description, price, original_price, category_id, images, sizes, colors, stock, sku, is_featured } = req.body;
@@ -143,7 +136,6 @@ router.post('/', adminMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/products/:id - admin only
 router.put('/:id', adminMiddleware, async (req, res) => {
   const db = req.app.locals.db;
   const { name, brand, description, price, original_price, images, sizes, colors, stock, is_featured } = req.body;
