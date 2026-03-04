@@ -15,8 +15,17 @@ const pool = new Pool({
 app.locals.db = pool;
 
 // Middleware
+const allowedOrigins = [
+  (process.env.FRONTEND_URL || '').replace(/\/$/, ''),
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, true); // permissive for now
+  },
   credentials: true
 }));
 app.use(express.json());
